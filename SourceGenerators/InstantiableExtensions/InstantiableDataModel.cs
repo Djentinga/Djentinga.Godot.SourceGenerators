@@ -1,7 +1,7 @@
 ﻿using Godot;
 using Microsoft.CodeAnalysis;
 
-namespace GodotSharp.SourceGenerators.InstantiableExtensions;
+namespace Djentinga.Godot.SourceGenerators.InstantiableExtensions;
 
 internal class InstantiableDataModel(INamedTypeSymbol symbol, InstantiableAttribute data, string tscn) : ClassDataModel(symbol)
 {
@@ -13,7 +13,6 @@ internal class InstantiableDataModel(INamedTypeSymbol symbol, InstantiableAttrib
     public string Tscn { get; } = tscn;
     public string Initialise { get; } = data.Initialise;
     public string Instantiate { get; } = data.Instantiate;
-    public string ConstructorScope { get; } = data.ConstructorScope;
     public InitArgs[] InitList { get; } = [..
         symbol
             .GetMembers(data.Initialise)
@@ -31,7 +30,6 @@ internal class InstantiableDataModel(INamedTypeSymbol symbol, InstantiableAttrib
             yield return $" - Tscn: {Tscn}";
             yield return $" - Initialise: {Initialise}";
             yield return $" - Instantiate: {Instantiate}";
-            yield return $" - ConstructorScope: {ConstructorScope}";
             yield return $" - InitList:";
             foreach (var initFunc in InitList)
                 yield return $"   - {initFunc}";

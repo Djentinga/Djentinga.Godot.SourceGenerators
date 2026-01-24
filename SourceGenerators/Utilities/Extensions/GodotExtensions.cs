@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 internal static class GD
 {

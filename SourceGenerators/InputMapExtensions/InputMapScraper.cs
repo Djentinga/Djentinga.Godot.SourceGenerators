@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace GodotSharp.SourceGenerators.InputMapExtensions;
+namespace Djentinga.Godot.SourceGenerators.InputMapExtensions;
 
 internal static class InputMapScraper
 {

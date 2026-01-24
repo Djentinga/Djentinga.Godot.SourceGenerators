@@ -1,7 +1,7 @@
 ﻿using Scriban;
 using Scriban.Runtime;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 internal static class ScribanExtensions
 {

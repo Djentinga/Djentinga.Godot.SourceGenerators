@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 public static class GeneratorExtensions
 {

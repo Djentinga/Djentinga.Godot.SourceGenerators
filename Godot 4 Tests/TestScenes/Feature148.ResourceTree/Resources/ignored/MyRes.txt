@@ -1,1 +1,0 @@
-folders with .gdignore should be excluded

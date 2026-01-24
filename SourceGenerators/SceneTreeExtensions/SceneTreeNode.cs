@@ -1,4 +1,4 @@
-﻿namespace GodotSharp.SourceGenerators.SceneTreeExtensions;
+﻿namespace Djentinga.Godot.SourceGenerators.SceneTreeExtensions;
 
 internal class SceneTreeNode
 {

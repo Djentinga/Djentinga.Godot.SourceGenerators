@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 internal abstract class ClassDataModel(INamedTypeSymbol symbol) : BaseDataModel(symbol, symbol)
 {

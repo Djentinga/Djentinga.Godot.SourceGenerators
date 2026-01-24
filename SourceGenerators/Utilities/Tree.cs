@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 public class Tree<T>(T value) : TreeNode<T>(value, null)
 {

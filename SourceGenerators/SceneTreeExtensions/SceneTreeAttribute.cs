@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using GodotSharp.SourceGenerators;
+using Djentinga.Godot.SourceGenerators;
 
 namespace Godot;
 
@@ -12,9 +12,11 @@ public sealed class SceneTreeAttribute(
     [CallerFilePath] string classPath = null) : Attribute
 {
     public string Root { get; } = root;
-    public string SceneFile { get; } = tscnRelativeToClassPath is null
+    public string SceneFile { get; } = classPath is null
+        ? string.Empty
+        : (tscnRelativeToClassPath is null
             ? Path.ChangeExtension(classPath, "tscn")
-            : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(classPath), tscnRelativeToClassPath));
+            : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(classPath) ?? string.Empty, tscnRelativeToClassPath)));
     public bool TraverseInstancedScenes { get; } = traverseInstancedScenes;
     public string DefaultUniqueNodeScope { get; } = uqScope.ToCodeString() ?? "public";
 }

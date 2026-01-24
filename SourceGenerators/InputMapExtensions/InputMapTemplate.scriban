@@ -9,22 +9,14 @@ partial class {{ClassName}}
 {
 {{~ for action in Actions ~}}
     /// <summary>The strongly typed input action name/type that corresponds to the <c>{{action.Item2}}</c> defined in <c>godot.project</c>.</summary>
-#if GODOT4_OR_GREATER
     public static readonly {{Type}} {{action.Item1}} = new("{{action.Item2}}");
-#else
-    public static readonly string {{action.Item1}} = "{{action.Item2}}";
-#endif
 {{~ end ~}}
 {{~ for lookup in NestedActions ~}}
     public static class {{lookup.Key}}
     {
 {{~ for action in lookup ~}}
         /// <summary>The strongly typed input action name/type that corresponds to the <c>{{lookup.Key}}.{{action.Item2}}</c> defined in <c>godot.project</c>.</summary>
-#if GODOT4_OR_GREATER
         public static readonly {{Type}} {{action.Item1}} = new("{{action.Item2}}");
-#else
-        public static readonly string {{action.Item1}} = "{{action.Item2}}";
-#endif
 {{~ end ~}}
     }
 {{~ end ~}}

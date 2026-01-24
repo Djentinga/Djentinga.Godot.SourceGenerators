@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 internal static class StringExtensions
 {

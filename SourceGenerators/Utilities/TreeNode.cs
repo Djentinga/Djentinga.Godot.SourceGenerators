@@ -1,4 +1,4 @@
-﻿namespace GodotSharp.SourceGenerators;
+﻿namespace Djentinga.Godot.SourceGenerators;
 
 public class TreeNode<T>(T value, TreeNode<T> parent)
 {

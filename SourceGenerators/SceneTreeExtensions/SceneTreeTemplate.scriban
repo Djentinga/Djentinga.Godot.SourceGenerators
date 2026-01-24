@@ -11,21 +11,22 @@ end
     [EditorBrowsable(EditorBrowsableState.Never)]
     private Godot.NodePath _{{node.Name}}Path;
 
-    {{scope}} {{node.Type}} {{node.Name}} => _{{node.Name}} ??=
-        GetNodeOrNull<{{node.Type}}>(_{{node.Name}}Path ??= "%{{node.Path | string.split '/' | array.last}}");
+    {{scope}} {{node.Type}} {{node.Name}}
+        {
+            get
+            {
+                // If cached node was freed/invalid, drop it and re-resolve.
+                if (_{{node.Name}} is not null && !Godot.GodotObject.IsInstanceValid(_{{node.Name}}))
+                    _{{node.Name}} = null;
 
-{{~ end -}}
+                // This calls GetNodeOrNull<...>(...) on the current node instance.
+                // If this wrapper is used on a null instance, the call site would NRE anyway;
+                // keep the property itself simple and safe for freed cached nodes.
+                return _{{node.Name}} ??=
+                    GetNodeOrNull<{{node.Type}}>(_{{node.Name}}Path ??= "%{{node.Path | string.split '/' | array.last}}");
+            }
+        }
 
-{{- func render_leaf(node, indent) ~}}
-
-{{indent}}        [EditorBrowsable(EditorBrowsableState.Never)]
-{{indent}}        private {{node.Value.Type}} _{{node.Value.Name}};
-
-{{indent}}        [EditorBrowsable(EditorBrowsableState.Never)]
-{{indent}}        private Godot.NodePath _{{node.Value.Name}}Path;
-
-{{indent}}        public {{node.Value.Type}} {{node.Value.Name}} => _{{node.Value.Name}} ??=
-{{indent}}            _root.GetNodeOrNull<{{node.Value.Type}}>(_{{node.Value.Name}}Path ??= "{{node.Value.Path}}");
 {{~ end -}}
 
 {{- func render_branch(node, depth, indent) ~}}
@@ -42,7 +43,7 @@ end
 {{indent}}            private readonly {{SceneTree.Root.Type}} _root;
 
 {{indent}}            public __{{depth}}_{{node.Value.Name}}({{SceneTree.Root.Type}} root)
-{{indent}}                => _root = root;
+{{indent}}                => _root = root ?? throw new System.ArgumentNullException(nameof(root));
 
 {{indent}}            [EditorBrowsable(EditorBrowsableState.Never)]
 {{indent}}            private {{node.Value.Type}} _{{depth}}_{{node.Value.Name}};
@@ -50,11 +51,20 @@ end
 {{indent}}            [EditorBrowsable(EditorBrowsableState.Never)]
 {{indent}}            private Godot.NodePath _{{depth}}_{{node.Value.Name}}Path;
 
-{{indent}}            public {{node.Value.Type}} Get() => _{{depth}}_{{node.Value.Name}} ??=
-{{indent}}                _root.GetNodeOrNull<{{node.Value.Type}}>(_{{depth}}_{{node.Value.Name}}Path ??= "{{node.Value.Path}}");
+{{indent}}            public {{node.Value.Type}} Get()
+{{indent}}            {
+{{indent}}                // If cached node was freed/invalid, drop it and re-resolve.
+{{indent}}                if (_{{depth}}_{{node.Value.Name}} is not null && !Godot.GodotObject.IsInstanceValid(_{{depth}}_{{node.Value.Name}}))
+{{indent}}                    _{{depth}}_{{node.Value.Name}} = null;
+{{indent}}
+{{indent}}                return _{{depth}}_{{node.Value.Name}} ??=
+{{indent}}                    _root.GetNodeOrNull<{{node.Value.Type}}>(_{{depth}}_{{node.Value.Name}}Path ??= "{{node.Value.Path}}");
+{{indent}}            }
 
 {{indent}}            public static implicit operator {{node.Value.Type}}(__{{depth}}_{{node.Value.Name}} source)
-{{indent}}                => source.Get();
+{{indent}}                => source is null
+{{indent}}                    ? throw new System.ArgumentNullException(nameof(source))
+{{indent}}                    : source.Get();
 {{~
     for child in node.Children | array.filter @visible
         render_tree child depth + 1 indent + "    "
@@ -65,11 +75,7 @@ end
 
 {{-
 func render_tree(node, depth=0, indent="")
-    if node.Children | array.filter @visible | array.size == 0
-        render_leaf node indent
-    else
-        render_branch node depth indent
-    end
+    render_branch node depth indent
 end
 -}}
 
@@ -77,15 +83,9 @@ using System.ComponentModel;
 
 {{~ Namespace ~}}
 
-#if GODOT4_OR_GREATER
 partial class {{ClassName}} : Godot.ISceneTree
-#else
-partial class {{ClassName}}
-#endif
 {
-#pragma warning disable CS0109 // Disable warning about redundant 'new' keyword
-    public static new string TscnFilePath { get; } = "{{TscnResource}}";
-#pragma warning restore CS0109 // Restore warning about redundant 'new' keyword
+    public static string TscnFilePath { get; } = "{{TscnResource}}";
 
 {{~
 for x in UniqueNodes
@@ -104,34 +104,38 @@ end
 
         public _SceneTree({{ClassName}} source)
         {
+            if (source is null)
+                throw new System.ArgumentNullException(nameof(source));
+
             _root = GetSceneRoot(source);
 
-            {{SceneTree.Root.Type}} GetSceneRoot(Godot.Node source)
+            {{SceneTree.Root.Type}} GetSceneRoot(Godot.Node start)
             {
-                while (true)
+                // Do not require a specific SceneFilePath; allow inherited/instanced scenes.
+                // Find the nearest ancestor that matches the expected root type.
+                for (var node = start; node is not null; node = node.GetParent())
                 {
-#if GODOT4_OR_GREATER
-                    if (source.SceneFilePath is "{{TscnResource}}")
-#else
-                    if (source.Filename is "{{TscnResource}}")
-#endif
-                        return ({{SceneTree.Root.Type}})source;
-                    var parent = source.GetParent();
-                    if (parent is null)
-                        Throw($"{source.Name} returned null parent");
-                    source = parent;
+                    if (node is {{SceneTree.Root.Type}} typed)
+                        return typed;
                 }
+
+                var safeName = start?.Name ?? "<null>";
+                Throw($"{safeName} was not under a {{SceneTree.Root.Type}} root");
+                return default!; // Unreachable
             }
 
             static void Throw(string msg)
-                => throw new System.InvalidOperationException($"Could not find scene root ({{ClassName}} can only be used within {{TscnResource}}) [Error: {msg}]");
+                => throw new System.InvalidOperationException(
+                    $"Could not find scene root ({{ClassName}} can only be used within {{TscnResource}}) [Error: {msg}]");
         }
 
         public {{SceneTree.Root.Type}} Get()
             => _root;
 
         public static implicit operator {{SceneTree.Root.Type}}(_SceneTree source)
-            => source.Get();
+            => source is null
+                ? throw new System.ArgumentNullException(nameof(source))
+                : source.Get();
 {{~
 for node in SceneTree.Children | array.filter @visible
     render_tree node

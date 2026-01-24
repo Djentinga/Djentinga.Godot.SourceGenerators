@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace GodotSharp.SourceGenerators;
+namespace Djentinga.Godot.SourceGenerators;
 
 internal static class Log
 {
@@ -40,7 +40,7 @@ internal static class Log
     static Log()
     {
         Stopwatch = Stopwatch.StartNew();
-        LogFile = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}/GodotSharp.SourceGenerators.log";
+        LogFile = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}/Djentinga.Godot.SourceGenerators.log";
 
         TryDeleteLogFile();
         Log.Debug($"*** NEW COMPILATION DETECTED: {DateTime.Now:HH:mm:ss.fff} ***");

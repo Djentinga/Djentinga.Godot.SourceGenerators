@@ -2,7 +2,7 @@
 using InputAction = (string MemberName, string GodotAction);
 using NestedInputAction = (string ClassName, (string MemberName, string GodotAction) InputAction);
 
-namespace GodotSharp.SourceGenerators.InputMapExtensions;
+namespace Djentinga.Godot.SourceGenerators.InputMapExtensions;
 
 internal class InputMapDataModel : ClassDataModel
 {

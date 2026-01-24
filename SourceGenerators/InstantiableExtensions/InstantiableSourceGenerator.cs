@@ -1,11 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Godot;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Scriban;
 
-namespace GodotSharp.SourceGenerators.InstantiableExtensions;
+namespace Djentinga.Godot.SourceGenerators.InstantiableExtensions;
 
 [Generator]
-internal class InstantiableSourceGenerator : SourceGeneratorForDeclaredTypeWithAttribute<Godot.InstantiableAttribute>
+internal class InstantiableSourceGenerator : SourceGeneratorForDeclaredTypeWithAttribute<InstantiableAttribute>
 {
     private static Template InstantiableTemplate => field ??= Template.Parse(Resources.InstantiableTemplate);
 
@@ -19,9 +20,8 @@ internal class InstantiableSourceGenerator : SourceGeneratorForDeclaredTypeWithA
 
         return (output, null);
 
-        Godot.InstantiableAttribute ReconstructAttribute() => new(
+        InstantiableAttribute ReconstructAttribute() => new(
             (string)attribute.ConstructorArguments[0].Value,
-            (string)attribute.ConstructorArguments[1].Value,
-            (Scope)attribute.ConstructorArguments[2].Value);
+            (string)attribute.ConstructorArguments[1].Value);
     }
 }

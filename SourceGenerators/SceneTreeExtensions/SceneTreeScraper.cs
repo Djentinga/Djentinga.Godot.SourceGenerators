@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 
-namespace GodotSharp.SourceGenerators.SceneTreeExtensions;
+namespace Djentinga.Godot.SourceGenerators.SceneTreeExtensions;
 
 internal static class SceneTreeScraper
 {

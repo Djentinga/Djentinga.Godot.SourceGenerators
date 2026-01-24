@@ -1,4 +1,4 @@
-﻿namespace GodotSharp.SourceGenerators;
+﻿namespace Djentinga.Godot.SourceGenerators;
 
 internal static class LinqExtensions
 {

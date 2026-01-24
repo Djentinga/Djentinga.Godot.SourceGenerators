@@ -1,11 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Godot;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Scriban;
 
-namespace GodotSharp.SourceGenerators.InputMapExtensions;
+namespace Djentinga.Godot.SourceGenerators.InputMapExtensions;
 
 [Generator]
-internal class InputMapSourceGenerator : SourceGeneratorForDeclaredTypeWithAttribute<Godot.InputMapAttribute>
+internal class InputMapSourceGenerator : SourceGeneratorForDeclaredTypeWithAttribute<InputMapAttribute>
 {
     private static Template InputMapTemplate => field ??= Template.Parse(Resources.InputMapTemplate);
 
@@ -20,7 +21,7 @@ internal class InputMapSourceGenerator : SourceGeneratorForDeclaredTypeWithAttri
 
         return (output, null);
 
-        Godot.InputMapAttribute ReconstructAttribute() => new(
+        InputMapAttribute ReconstructAttribute() => new(
             (string)attribute.ConstructorArguments[0].Value,
             (string)attribute.ConstructorArguments[1].Value);
     }

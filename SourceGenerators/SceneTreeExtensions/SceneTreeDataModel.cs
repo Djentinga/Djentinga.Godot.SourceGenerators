@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace GodotSharp.SourceGenerators.SceneTreeExtensions;
+namespace Djentinga.Godot.SourceGenerators.SceneTreeExtensions;
 
 internal class SceneTreeDataModel : ClassDataModel
 {
@@ -14,9 +14,9 @@ internal class SceneTreeDataModel : ClassDataModel
     {
         Root = root;
         TscnResource = GD.RES(source, gdRoot);
-        var (SceneTree, UniqueNodes) = SceneTreeScraper.GetNodes(compilation, source, deep);
-        this.SceneTree = SceneTree;
-        this.UniqueNodes = [.. UniqueNodes.Select(x => new UniqueNode(x, Scope(x.Name)))];
+        var (sceneTree, uniqueNodes) = SceneTreeScraper.GetNodes(compilation, source, deep);
+        SceneTree = sceneTree;
+        UniqueNodes = [.. uniqueNodes.Select(x => new UniqueNode(x, Scope(x.Name)))];
 
         string Scope(string name)
         {
