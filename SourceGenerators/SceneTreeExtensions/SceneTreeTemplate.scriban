@@ -15,15 +15,11 @@ end
         {
             get
             {
-                // If cached node was freed/invalid, drop it and re-resolve.
                 if (_{{node.Name}} is not null && !Godot.GodotObject.IsInstanceValid(_{{node.Name}}))
                     _{{node.Name}} = null;
 
-                // This calls GetNodeOrNull<...>(...) on the current node instance.
-                // If this wrapper is used on a null instance, the call site would NRE anyway;
-                // keep the property itself simple and safe for freed cached nodes.
                 return _{{node.Name}} ??=
-                    GetNodeOrNull<{{node.Type}}>(_{{node.Name}}Path ??= "%{{node.Path | string.split '/' | array.last}}");
+                    GetNode<{{node.Type}}>(_{{node.Name}}Path ??= "%{{node.Path | string.split '/' | array.last}}");
             }
         }
 
@@ -58,7 +54,7 @@ end
 {{indent}}                    _{{depth}}_{{node.Value.Name}} = null;
 {{indent}}
 {{indent}}                return _{{depth}}_{{node.Value.Name}} ??=
-{{indent}}                    _root.GetNodeOrNull<{{node.Value.Type}}>(_{{depth}}_{{node.Value.Name}}Path ??= "{{node.Value.Path}}");
+{{indent}}                    _root.GetNode<{{node.Value.Type}}>(_{{depth}}_{{node.Value.Name}}Path ??= "{{node.Value.Path}}");
 {{indent}}            }
 
 {{indent}}            public static implicit operator {{node.Value.Type}}(__{{depth}}_{{node.Value.Name}} source)
