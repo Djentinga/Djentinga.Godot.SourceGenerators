@@ -19,6 +19,12 @@ internal static class SceneTreeScraper
     private static string _resPath = null;
     private static readonly Dictionary<string, Tree<SceneTreeNode>> sceneTreeCache = [];
 
+    public static void ClearCache()
+    {
+        sceneTreeCache.Clear();
+        _resPath = null;
+    }
+
     public static (Tree<SceneTreeNode> SceneTree, List<SceneTreeNode> UniqueNodes) GetNodes(Compilation compilation, string tscnFile, bool traverseInstancedScenes)
     {
         tscnFile = tscnFile.Replace("\\", "/");
@@ -184,7 +190,8 @@ internal static class SceneTreeScraper
 
                         void AddRootNode()
                         {
-                            curNode = new SceneTreeNode(nodeName, $"Godot.{nodeType}", nodePath);
+                            var resolvedType = nodeType ?? "Node";
+                            curNode = new SceneTreeNode(nodeName, $"Godot.{resolvedType}", nodePath);
                             Log.Debug($" - RootNode [{curNode}]");
                             Debug.Assert(parentPath is null);
                             AddNode(curNode);
@@ -237,12 +244,29 @@ internal static class SceneTreeScraper
 
                         Tree<SceneTreeNode> GetCachedScene(string resource)
                         {
-                            if (!sceneTreeCache.TryGetValue(resource, out var scene))
+                            if (sceneTreeCache.TryGetValue(resource, out var scene))
+                            {
+                                if (!File.Exists(resource))
+                                {
+                                    sceneTreeCache.Remove(resource);
+                                    scene = null;
+                                }
+                            }
+
+                            if (scene is null)
                             {
                                 if (resource.EndsWith(".tscn"))
                                 {
-                                    scene = GetNodes(compilation, resource, traverseInstancedScenes).SceneTree;
-                                    Log.Debug($"\n<<< {tscnFile}");
+                                    if (!File.Exists(resource))
+                                    {
+                                        Log.Debug($"Resource not found: {resource}");
+                                        scene = new(new("Missing", "Godot.Node", ""));
+                                    }
+                                    else
+                                    {
+                                        scene = GetNodes(compilation, resource, traverseInstancedScenes).SceneTree;
+                                        Log.Debug($"\n<<< {tscnFile}");
+                                    }
                                 }
                                 else
                                 {
@@ -279,11 +303,11 @@ internal static class SceneTreeScraper
 
             void ValueMatch()
             {
-                var match = ValueRegex.Match(line);
-                if (!match.Success) return;
-                Log.Debug($" - Value {ValueRegex.GetGroupsAsStr(match)}");
-                var key = match.Groups["Key"].Value;
-                var value = match.Groups["Value"].Value;
+                var isValueMatch = ValueRegex.Match(line);
+                if (!isValueMatch.Success) return;
+                Log.Debug($" - Value {ValueRegex.GetGroupsAsStr(isValueMatch)}");
+                var key = isValueMatch.Groups["Key"].Value;
+                var value = isValueMatch.Groups["Value"].Value;
 
                 switch (key)
                 {
@@ -295,15 +319,30 @@ internal static class SceneTreeScraper
                 {
                     if (value is "null") return;
                     if (curNode is null) return;
-                    var match = ResIdRegex.Match(value);
-                    if (!match.Success) return;
-                    var resourceId = match.Groups["Id"].Value;
+                    var isScriptMatch = ResIdRegex.Match(value);
+                    if (!isScriptMatch.Success) return;
+                    var resourceId = isScriptMatch.Groups["Id"].Value;
                     Log.Debug($" - ResourceId: {resourceId}");
                     var resource = resources[resourceId];
                     if (!resource.EndsWith(".cs")) return;
+
+                    var scriptPath = _resPath + resource;
+                    if (!File.Exists(scriptPath))
+                    {
+                        Log.Debug($" - WARNING: Script file not found: {scriptPath}");
+                        return;
+                    }
+
                     var name = Path.GetFileNameWithoutExtension(resource);
-                    curNode.Type = compilation.GetFullName(name, resource);
-                    Debug.Assert(curNode.Type is not null);
+                    var resolvedType = compilation.GetFullName(name, resource);
+
+                    if (resolvedType is null)
+                    {
+                        Log.Debug($" - WARNING: Could not resolve type for script: {resource} (did you rename the file?)");
+                        return;
+                    }
+
+                    curNode.Type = resolvedType;
                     Log.Debug($" - ScriptType [{curNode}]");
                 }
 
@@ -317,6 +356,11 @@ internal static class SceneTreeScraper
                     }
                 }
             }
+        }
+
+        if (sceneTree?.Root?.Type is null or "")
+        {
+            Log.Debug($"ERROR: Root type is null/empty for {tscnFile}");
         }
 
         sceneTreeCache[tscnFile] = sceneTree;
