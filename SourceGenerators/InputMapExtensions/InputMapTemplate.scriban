@@ -7,6 +7,19 @@ using Godot;
 
 partial class {{ClassName}}
 {
+    /// <summary>
+    /// Replaces <c>PropertyHint.InputName</c> with a sorted <c>PropertyHint.Enum</c> dropdown in the Godot editor.
+    /// Call from <c>_ValidateProperty</c> to sort the input action dropdown.
+    /// </summary>
+    public static void SortInputActions(Godot.Collections.Dictionary property)
+    {
+        if ((long)property["hint"] == (long)PropertyHint.InputName)
+        {
+            property["hint"] = (long)PropertyHint.Enum;
+            property["hint_string"] = "{{HintString}}";
+        }
+    }
+
 {{~ for action in Actions ~}}
     /// <summary>The strongly typed input action name/type that corresponds to the <c>{{action.Item2}}</c> defined in <c>godot.project</c>.</summary>
     public static readonly {{Type}} {{action.Item1}} = new("{{action.Item2}}");

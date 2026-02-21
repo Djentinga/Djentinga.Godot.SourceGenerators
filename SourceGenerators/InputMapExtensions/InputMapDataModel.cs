@@ -9,6 +9,7 @@ internal class InputMapDataModel : ClassDataModel
     public string Type { get; }
     public IList<InputAction> Actions { get; }
     public ILookup<string, InputAction> NestedActions { get; }
+    public string HintString { get; }
 
     public InputMapDataModel(INamedTypeSymbol symbol, string type, string csPath, string gdRoot) : base(symbol)
     {
@@ -24,6 +25,10 @@ internal class InputMapDataModel : ClassDataModel
             .OrderBy(x => x.ClassName)
             .ThenBy(x => x.InputAction.MemberName)
             .ToLookup(x => x.ClassName, x => x.InputAction);
+        HintString = string.Join(",",
+            Actions.Select(a => a.GodotAction)
+                .Concat(NestedActions.SelectMany(g => g.Select(a => a.GodotAction)))
+                .OrderBy(x => x));
     }
 
     private static NestedInputAction NestedInputAction(string source)
