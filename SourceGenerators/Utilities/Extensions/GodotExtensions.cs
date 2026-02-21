@@ -8,13 +8,17 @@ internal static class GD
 {
     private const string GodotProjectFile = "project.godot";
 
+    private static readonly object ResRootLock = new();
     private static string _resRoot = null;
     private static string GetProjectRoot(string path)
     {
-        return _resRoot is null || !path.StartsWith(_resRoot)
-            ? _resRoot = GetProjectRoot(path) : _resRoot;
+        lock (ResRootLock)
+        {
+            return _resRoot is null || !path.StartsWith(_resRoot)
+                ? _resRoot = FindProjectRoot(path) : _resRoot;
+        }
 
-        static string GetProjectRoot(string path)
+        static string FindProjectRoot(string path)
         {
             var dir = Path.GetDirectoryName(path);
 

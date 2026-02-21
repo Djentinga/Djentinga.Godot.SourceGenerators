@@ -12,7 +12,11 @@ internal class InstantiableSourceGenerator : SourceGeneratorForDeclaredTypeWithA
 
     protected override (string GeneratedCode, DiagnosticDetail Error) GenerateCode(Compilation compilation, SyntaxNode node, INamedTypeSymbol symbol, AttributeData attribute, AnalyzerConfigOptions options)
     {
-        var model = new InstantiableDataModel(symbol, ReconstructAttribute(), GD.TSCN(node, options));
+        var tscn = GD.TSCN(node, options);
+        if (tscn is null)
+            return (null, Diagnostics.FileNotFound(node.SyntaxTree.FilePath, $"Could not find .tscn file for {symbol.Name}"));
+
+        var model = new InstantiableDataModel(symbol, ReconstructAttribute(), tscn);
         Log.Debug($"--- MODEL ---\n{model}\n");
 
         var output = InstantiableTemplate.Render(model, Shared.Utils);
