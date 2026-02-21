@@ -6,9 +6,9 @@ namespace Djentinga.Godot.SourceGenerators.InputMapExtensions;
 
 internal class InputMapDataModel : ClassDataModel
 {
-    private string Type { get; }
-    private IList<InputAction> Actions { get; }
-    private ILookup<string, InputAction> NestedActions { get; }
+    public string Type { get; }
+    public IList<InputAction> Actions { get; }
+    public ILookup<string, InputAction> NestedActions { get; }
 
     public InputMapDataModel(INamedTypeSymbol symbol, string type, string csPath, string gdRoot) : base(symbol)
     {

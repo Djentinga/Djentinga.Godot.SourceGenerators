@@ -23,7 +23,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Djentinga/Djentinga.Godot.SourceGenerators</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Djentinga/Djentinga.Godot.SourceGenerators</PackageProjectUrl>
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     <!--<Version>2.7.0</Version>-->
   </PropertyGroup>
 
