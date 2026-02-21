@@ -1,0 +1,8 @@
+using System.ComponentModel;
+
+{{~ Namespace ~}}
+
+partial class {{ClassName}}
+{
+    public static string TresFilePath { get; } = "{{TresResource}}";
+}
