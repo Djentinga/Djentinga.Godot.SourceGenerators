@@ -1,6 +1,10 @@
 ﻿{{-#####-CONTENT-#####-}}
 
 {{~ capture body ~}}
+{{~if !HasTscnFilePathAttribute~}}
+    public static string TscnFilePath { get; } = "{{Tscn}}";
+
+{{~end~}}
     [{{EditorBrowsableNever}}]
     private static PackedScene __{{ClassName}};
 
@@ -26,4 +30,8 @@
 
 {{-#####-MAIN-#####-}}
 
+{{~ if !HasTscnFilePathAttribute ~}}
+{{~ RenderClass body interfaces: "Godot.ISceneTree" ~}}
+{{~ else ~}}
 {{~ RenderClass body ~}}
+{{~ end ~}}

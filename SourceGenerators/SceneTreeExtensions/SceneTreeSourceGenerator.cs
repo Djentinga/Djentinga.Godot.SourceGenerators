@@ -32,7 +32,10 @@ internal class SceneTreeSourceGenerator : SourceGeneratorForDeclaredTypeWithAttr
             if (!File.Exists(cfg.SceneFile))
                 return (null, Diagnostics.FileNotFound(cfg.SceneFile));
 
-            var model = new SceneTreeDataModel(compilation, symbol, cfg.Root, cfg.SceneFile, cfg.DefaultUniqueNodeScope, cfg.TraverseInstancedScenes, GD.ROOT(node, options));
+            var hasTscnFilePathAttr = symbol.GetAttributes()
+                .Any(a => a.AttributeClass?.Name == nameof(TscnFilePathAttribute));
+
+            var model = new SceneTreeDataModel(compilation, symbol, cfg.Root, cfg.SceneFile, cfg.DefaultUniqueNodeScope, cfg.TraverseInstancedScenes, GD.ROOT(node, options), hasTscnFilePathAttr);
             Log.Debug($"--- MODEL ---\n{model}\n");
 
             if (string.IsNullOrEmpty(model.SceneTree?.Root?.Type))

@@ -3,8 +3,9 @@ using Microsoft.CodeAnalysis;
 
 namespace Djentinga.Godot.SourceGenerators.InstantiableExtensions;
 
-internal class InstantiableDataModel(INamedTypeSymbol symbol, InstantiableAttribute data, string tscn) : ClassDataModel(symbol)
+internal class InstantiableDataModel(INamedTypeSymbol symbol, InstantiableAttribute data, string tscn, bool hasTscnFilePathAttribute) : ClassDataModel(symbol)
 {
+    public bool HasTscnFilePathAttribute { get; } = hasTscnFilePathAttribute;
     public record InitArgs(string Params, string Args)
     {
         public override string ToString() => $"{Params} -> {Args}";

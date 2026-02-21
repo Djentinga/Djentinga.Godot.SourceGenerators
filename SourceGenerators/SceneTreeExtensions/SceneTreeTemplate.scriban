@@ -79,9 +79,11 @@ using System.ComponentModel;
 
 {{~ Namespace ~}}
 
-partial class {{ClassName}} : Godot.ISceneTree
+partial class {{ClassName}}{{if !HasTscnFilePathAttribute}} : Godot.ISceneTree{{end}}
 {
+{{~if !HasTscnFilePathAttribute~}}
     public static string TscnFilePath { get; } = "{{TscnResource}}";
+{{~end~}}
 
 {{~
 for x in UniqueNodes

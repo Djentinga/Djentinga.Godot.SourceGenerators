@@ -1,0 +1,8 @@
+using System.ComponentModel;
+
+{{~ Namespace ~}}
+
+partial class {{ClassName}} : Godot.ISceneTree
+{
+    public static string TscnFilePath { get; } = "{{TscnResource}}";
+}

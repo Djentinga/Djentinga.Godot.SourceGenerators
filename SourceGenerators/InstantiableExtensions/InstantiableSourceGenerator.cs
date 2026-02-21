@@ -16,7 +16,10 @@ internal class InstantiableSourceGenerator : SourceGeneratorForDeclaredTypeWithA
         if (tscn is null)
             return (null, Diagnostics.FileNotFound(node.SyntaxTree.FilePath, $"Could not find .tscn file for {symbol.Name}"));
 
-        var model = new InstantiableDataModel(symbol, ReconstructAttribute(), tscn);
+        var hasTscnFilePathAttr = symbol.GetAttributes()
+            .Any(a => a.AttributeClass?.Name is nameof(TscnFilePathAttribute) or nameof(SceneTreeAttribute));
+
+        var model = new InstantiableDataModel(symbol, ReconstructAttribute(), tscn, hasTscnFilePathAttr);
         Log.Debug($"--- MODEL ---\n{model}\n");
 
         var output = InstantiableTemplate.Render(model, Shared.Utils);

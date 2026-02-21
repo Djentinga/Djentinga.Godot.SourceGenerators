@@ -10,8 +10,11 @@ internal class SceneTreeDataModel : ClassDataModel
     public IEnumerable<UniqueNode> UniqueNodes { get; }
     internal record UniqueNode(SceneTreeNode Node, string Scope);
 
-    public SceneTreeDataModel(Compilation compilation, INamedTypeSymbol symbol, string root, string source, string uqScope, bool deep, string gdRoot) : base(symbol)
+    public bool HasTscnFilePathAttribute { get; }
+
+    public SceneTreeDataModel(Compilation compilation, INamedTypeSymbol symbol, string root, string source, string uqScope, bool deep, string gdRoot, bool hasTscnFilePathAttribute) : base(symbol)
     {
+        HasTscnFilePathAttribute = hasTscnFilePathAttribute;
         Root = root;
         TscnResource = GD.RES(source, gdRoot);
         var (sceneTree, uniqueNodes) = SceneTreeScraper.GetNodes(compilation, source, deep);

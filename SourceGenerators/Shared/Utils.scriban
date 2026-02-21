@@ -55,7 +55,7 @@ end-}}
 {{-#####-RenderClass-#####-}}
 {{-#######################-}}
 
-{{-func RenderClass(body, extension_methods=null, helper_classes=null)-}}
+{{-func RenderClass(body, extension_methods=null, helper_classes=null, interfaces=null)-}}
 using System;
 using Godot;
 
@@ -65,13 +65,13 @@ using Godot;
 {{~ if OuterType ~}}
 {{if IsStaticOuter}}static {{end}}partial class {{OuterType}}
 {
-    {{if IsStaticClass}}static {{end}}partial class {{ClassName}}
+    {{if IsStaticClass}}static {{end}}partial class {{ClassName}}{{if interfaces}} : {{interfaces}}{{end}}
     {
         {{~ body | Indent 8 ~}}
     }
 }
 {{~ else ~}}
-{{if IsStaticClass}}static {{end}}partial class {{ClassName}}
+{{if IsStaticClass}}static {{end}}partial class {{ClassName}}{{if interfaces}} : {{interfaces}}{{end}}
 {
     {{~ body | Indent 4 ~}}
 }
