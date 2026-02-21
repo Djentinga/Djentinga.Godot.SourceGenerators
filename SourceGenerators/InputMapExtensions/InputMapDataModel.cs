@@ -6,9 +6,9 @@ namespace Djentinga.Godot.SourceGenerators.InputMapExtensions;
 
 internal class InputMapDataModel : ClassDataModel
 {
-    public string Type { get; }
-    public IList<InputAction> Actions { get; }
-    public ILookup<string, InputAction> NestedActions { get; }
+    private string Type { get; }
+    private IList<InputAction> Actions { get; }
+    private ILookup<string, InputAction> NestedActions { get; }
 
     public InputMapDataModel(INamedTypeSymbol symbol, string type, string csPath, string gdRoot) : base(symbol)
     {
@@ -17,23 +17,28 @@ internal class InputMapDataModel : ClassDataModel
             .ToLookup(IsNestedAction);
 
         Type = type;
-        Actions = actions[false].Select(InputAction).ToArray();
-        NestedActions = actions[true].Select(NestedInputAction).ToLookup(x => x.ClassName, x => x.InputAction);
-
-        static bool IsNestedAction(string source)
-            => source.Contains('.');
-
-        static InputAction InputAction(string source)
-            => (source.ToPascalCase(), source);
-
-        static NestedInputAction NestedInputAction(string source)
-        {
-            var parts = source.Split(['.'], 2);
-            var className = parts.First().ToPascalCase();
-            var memberName = parts.Last().Replace(".", "").ToPascalCase();
-            return (className, (memberName, source));
-        }
+        Actions = actions[false].Select(InputAction)
+            .OrderBy(x => x.MemberName)
+            .ToArray();
+        NestedActions = actions[true].Select(NestedInputAction)
+            .OrderBy(x => x.ClassName)
+            .ThenBy(x => x.InputAction.MemberName)
+            .ToLookup(x => x.ClassName, x => x.InputAction);
     }
+
+    private static NestedInputAction NestedInputAction(string source)
+    {
+        var parts = source.Split(['.'], 2);
+        var className = parts.First().ToPascalCase();
+        var memberName = parts.Last().Replace(".", "").ToPascalCase();
+        return (className, (memberName, source));
+    }
+
+    private static InputAction InputAction(string source)
+        => (source.ToPascalCase(), source);
+
+    private static bool IsNestedAction(string source)
+        => source.Contains('.');
 
     protected override string Str()
     {
