@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 
@@ -17,18 +18,18 @@ internal static class SceneTreeScraper
     private static readonly Regex ResPathRegex = new(ResPathRegexStr, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
     private static string _resPath = null;
-    private static readonly Dictionary<string, Tree<SceneTreeNode>> sceneTreeCache = [];
+    private static readonly ConcurrentDictionary<string, Tree<SceneTreeNode>> SceneTreeCache = [];
 
     public static void ClearCache()
     {
-        sceneTreeCache.Clear();
+        SceneTreeCache.Clear();
         _resPath = null;
     }
 
     public static (Tree<SceneTreeNode> SceneTree, List<SceneTreeNode> UniqueNodes) GetNodes(Compilation compilation, string tscnFile, bool traverseInstancedScenes)
     {
         tscnFile = tscnFile.Replace("\\", "/");
-        Log.Debug($"Scraping {tscnFile} [Cached? {sceneTreeCache.ContainsKey(tscnFile)}, CacheCount: {sceneTreeCache.Count}]");
+        Log.Debug($"Scraping {tscnFile} [Cached? {SceneTreeCache.ContainsKey(tscnFile)}, CacheCount: {SceneTreeCache.Count}]");
 
         var valueMatch = false;
         SceneTreeNode curNode = null;
@@ -107,7 +108,7 @@ internal static class SceneTreeScraper
                                 ? _resPath = TryGetFromSceneCache() ?? TryGetFromFileSystem() : _resPath;
 
                             string TryGetFromSceneCache()
-                                => sceneTreeCache.Keys.FirstOrDefault(x => x.EndsWith(resource))?[..^resource.Length];
+                                => SceneTreeCache.Keys.FirstOrDefault(x => x.EndsWith(resource))?[..^resource.Length];
 
                             string TryGetFromFileSystem()
                             {
@@ -244,11 +245,11 @@ internal static class SceneTreeScraper
 
                         Tree<SceneTreeNode> GetCachedScene(string resource)
                         {
-                            if (sceneTreeCache.TryGetValue(resource, out var scene))
+                            if (SceneTreeCache.TryGetValue(resource, out var scene))
                             {
                                 if (!File.Exists(resource))
                                 {
-                                    sceneTreeCache.Remove(resource);
+                                    SceneTreeCache.TryRemove(resource, out _);
                                     scene = null;
                                 }
                             }
@@ -363,7 +364,7 @@ internal static class SceneTreeScraper
             Log.Debug($"ERROR: Root type is null/empty for {tscnFile}");
         }
 
-        sceneTreeCache[tscnFile] = sceneTree;
+        SceneTreeCache[tscnFile] = sceneTree;
         return (sceneTree, uniqueNodes);
     }
 }

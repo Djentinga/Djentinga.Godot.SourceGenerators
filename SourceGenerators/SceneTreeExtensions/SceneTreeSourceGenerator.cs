@@ -19,25 +19,30 @@ internal class SceneTreeSourceGenerator : SourceGeneratorForDeclaredTypeWithAttr
         }
     }
 
+    private static readonly object ScrapeLock = new();
+
     protected override (string GeneratedCode, DiagnosticDetail Error) GenerateCode(Compilation compilation, SyntaxNode node, INamedTypeSymbol symbol, AttributeData attribute, AnalyzerConfigOptions options)
     {
-        SceneTreeScraper.ClearCache();
+        lock (ScrapeLock)
+        {
+            SceneTreeScraper.ClearCache();
 
-        var cfg = ReconstructAttribute();
+            var cfg = ReconstructAttribute();
 
-        if (!File.Exists(cfg.SceneFile))
-            return (null, Diagnostics.FileNotFound(cfg.SceneFile));
+            if (!File.Exists(cfg.SceneFile))
+                return (null, Diagnostics.FileNotFound(cfg.SceneFile));
 
-        var model = new SceneTreeDataModel(compilation, symbol, cfg.Root, cfg.SceneFile, cfg.DefaultUniqueNodeScope, cfg.TraverseInstancedScenes, GD.ROOT(node, options));
-        Log.Debug($"--- MODEL ---\n{model}\n");
+            var model = new SceneTreeDataModel(compilation, symbol, cfg.Root, cfg.SceneFile, cfg.DefaultUniqueNodeScope, cfg.TraverseInstancedScenes, GD.ROOT(node, options));
+            Log.Debug($"--- MODEL ---\n{model}\n");
 
-        if (string.IsNullOrEmpty(model.SceneTree?.Root?.Type))
-            return (null, Diagnostics.InvalidRootType(cfg.SceneFile));
+            if (string.IsNullOrEmpty(model.SceneTree?.Root?.Type))
+                return (null, Diagnostics.InvalidRootType(cfg.SceneFile));
 
-        var output = SceneTreeTemplate.Render(model, member => member.Name);
-        Log.Debug($"--- OUTPUT ---\n{output}<END>\n");
+            var output = SceneTreeTemplate.Render(model, member => member.Name);
+            Log.Debug($"--- OUTPUT ---\n{output}<END>\n");
 
-        return (output, null);
+            return (output, null);
+        }
 
         SceneTreeAttribute ReconstructAttribute()
         {
