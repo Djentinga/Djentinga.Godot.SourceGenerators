@@ -1,6 +1,6 @@
-﻿# Djentinga.Godot.SourceGenerators
+# Djentinga.Godot.SourceGenerators
 
-A slimmed fork of https://github.com/Cat-Lips/GodotSharp.SourceGenerators containing some bug fixes.
+A slimmed fork of https://github.com/Cat-Lips/GodotSharp.SourceGenerators containing bug fixes and new features.
 
 Contains C# Source Generators for use with the Godot Game Engine 4.x and up.
 
@@ -8,17 +8,21 @@ Contains C# Source Generators for use with the Godot Game Engine 4.x and up.
 * `SceneTree` class attribute:
   * Provides strongly typed access to the scene hierarchy (via `_` operator)
   * Generates direct access to uniquely named nodes via class properties
-* `Instantiable` class attribute (GD4 only):
+* `Instantiable` class attribute:
   * Generates configurable static method(s) to instantiate scene
 * `InputMap` class attribute:
   * Provides strongly typed access to input actions defined in godot.project
   * Attribute option to replace StringName with your own custom object/handler
+  * Generates `SortInputActions` helper for sorted dropdowns in the Godot editor
+* `TscnFilePath` class attribute:
+  * Generates a static `TscnFilePath` property without the full `SceneTree` hierarchy
+* `TresFilePath` class attribute:
+  * Generates a static `TresFilePath` property pointing to the associated `.tres` resource file
 * Includes base classes/helpers to create project specific source generators
 
 
 ## Table of Contents
-- [Djentinga.Godot.SourceGenerators](#godotsharpsourcegenerators)
-  - [Notes](#notes)
+- [Djentinga.Godot.SourceGenerators](#djentingagodotsourcegenerators)
   - [Features](#features)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
@@ -26,6 +30,8 @@ Contains C# Source Generators for use with the Godot Game Engine 4.x and up.
     - [`SceneTree`](#scenetree)
     - [`Instantiable`](#instantiable)
     - [`InputMap`](#inputmap)
+    - [`TscnFilePath`](#tscnfilepath)
+    - [`TresFilePath`](#tresfilepath)
 
 ## Installation
 Install via [NuGet](https://www.nuget.org/packages/Djentinga.Godot.SourceGenerators)
@@ -43,6 +49,7 @@ Install via [NuGet](https://www.nuget.org/packages/Djentinga.Godot.SourceGenerat
     * tscnRelativeToClassPath: (default null) Specify path to tscn relative to current class
     * traverseInstancedScenes: (default false) Include instanced scenes in the generated hierarchy
     * root: (default _) Provide alternative to `_` operator (eg, to allow use of C# discard variable)
+    * uqScope: (default Public) Default access scope for uniquely named node properties
 #### Examples:
 ```cs
 // Attach a C# script on the root node of the scene with the same name
@@ -52,13 +59,13 @@ Install via [NuGet](https://www.nuget.org/packages/Djentinga.Godot.SourceGenerat
 //[SceneTree("my_scene.tscn")]                  // Use this if tscn has different name
 //[SceneTree("../Scenes/MyScene.tscn")]         // Use relative path if tscn located elsewhere
 //[SceneTree(traverseInstancedScenes: true)]    // Use this to include instanced scenes in current hierarchy
-//[SceneTree(uqScope: Scope.Protected)]         // Use this to specify default scope of uniquely named nodes (default: 'Public') [NEW]
+//[SceneTree(uqScope: Scope.Protected)]         // Use this to specify default scope of uniquely named nodes (default: 'Public')
 public partial class MyScene : Node
 {
-    // Default scope of uniquely named nodes can be overridden using partial properties [NEW - GD4 only]
+    // Default scope of uniquely named nodes can be overridden using partial properties
     private partial MyNodeType MyNodeWithUniqueName { get; }
 
-    public override void _Ready() 
+    public override void _Ready()
     {
         // You can access the node via '_' object
         GD.Print(_.Node1.Node11.Node12.Node121);
@@ -82,7 +89,7 @@ public partial class MyScene : Node
 public void NextScene()
     => GetTree().ChangeSceneToFile(MyScene.TscnFilePath);
 ```
-#### ISceneTree (GD4 only)
+#### ISceneTree
  * Generated for any class decorated with [SceneTree]
 ```cs
 namespace Djentinga.Godot.SourceGenerators;
@@ -97,7 +104,7 @@ Usage:
 public void NextScene<T>() where T : ISceneTree
     => GetTree().ChangeSceneToFile(T.TscnFilePath);
 ```
-#### IInstantiable (GD4 only)
+#### IInstantiable
  * Provides a default Instantiate method that uses TscnFilePath
  * Both non-generic and generic versions are available
  * A default Instantiator class is also available
@@ -234,6 +241,8 @@ partial class Scene3
 ### `InputMap`
   * Class attribute
   * Provides strongly typed access to input actions defined in godot.project (set via editor)
+  * Actions are sorted alphabetically in the generated code
+  * Generates a `SortInputActions` helper method for sorted dropdowns in the Godot editor
   * If you want access to built-in actions, see [BuiltinInputActions.cs](https://gist.github.com/qwe321qwe321qwe321/bbf4b135c49372746e45246b364378c4)
   * Advanced options available as attribute arguments:
     * dataType: (default StringName)
@@ -262,21 +271,83 @@ public class GameInput(StringName action)
 Generates:
 ```cs
 // (static optional)
-// (string rather than StringName for Godot 3)
 // (does not provide access to built-in actions)
 partial static class MyInput
 {
+    /// <summary>
+    /// Replaces <c>PropertyHint.InputName</c> with a sorted <c>PropertyHint.Enum</c> dropdown in the Godot editor.
+    /// Call from <c>_ValidateProperty</c> to sort the input action dropdown.
+    /// </summary>
+    public static void SortInputActions(Godot.Collections.Dictionary property) { ... }
+
+    public static readonly StringName MoveDown = new("move_down");
     public static readonly StringName MoveLeft = new("move_left");
     public static readonly StringName MoveRight = new("move_right");
     public static readonly StringName MoveUp = new("move_up");
-    public static readonly StringName MoveDown = new("move_down");
 }
 
 partial static class MyGameInput
 {
+    public static void SortInputActions(Godot.Collections.Dictionary property) { ... }
+
+    public static readonly GameInput MoveDown = new("move_down");
     public static readonly GameInput MoveLeft = new("move_left");
     public static readonly GameInput MoveRight = new("move_right");
     public static readonly GameInput MoveUp = new("move_up");
-    public static readonly GameInput MoveDown = new("move_down");
+}
+```
+#### SortInputActions
+Use the generated `SortInputActions` method in `_ValidateProperty` to replace the default unsorted input action dropdown with a sorted enum dropdown:
+```cs
+public override void _ValidateProperty(Godot.Collections.Dictionary property)
+{
+    MyInput.SortInputActions(property);
+}
+```
+
+### `TscnFilePath`
+  * Class attribute
+  * Lightweight alternative to `[SceneTree]` when you only need the `TscnFilePath` property
+  * Generates a static `TscnFilePath` property and implements `ISceneTree`
+  * Advanced options available as attribute arguments:
+    * tscnRelativeToClassPath: (default null) Specify path to tscn relative to current class
+#### Examples:
+```cs
+// Generates TscnFilePath for the .tscn file with the same name as the class
+[TscnFilePath]
+public partial class MyScene : Node;
+
+// Specify a custom path relative to the class file
+[TscnFilePath("../Scenes/MyScene.tscn")]
+public partial class MyScene : Node;
+```
+Generates:
+```cs
+partial class MyScene : Godot.ISceneTree
+{
+    public static string TscnFilePath { get; } = "res://Path/To/MyScene.tscn";
+}
+```
+
+### `TresFilePath`
+  * Class attribute
+  * Generates a static `TresFilePath` property pointing to the associated `.tres` resource file
+  * Advanced options available as attribute arguments:
+    * tresRelativeToClassPath: (default null) Specify path to tres relative to current class
+#### Examples:
+```cs
+// Generates TresFilePath for the .tres file with the same name as the class
+[TresFilePath]
+public partial class MyResource : Resource;
+
+// Specify a custom path relative to the class file
+[TresFilePath("../Resources/MyResource.tres")]
+public partial class MyResource : Resource;
+```
+Generates:
+```cs
+partial class MyResource
+{
+    public static string TresFilePath { get; } = "res://Path/To/MyResource.tres";
 }
 ```
