@@ -15,7 +15,7 @@
   <!-- Package Settings -->
   <PropertyGroup>
     <Description>Forked from: https://github.com/Cat-Lips/GodotSharp.SourceGenerators</Description>
-    <PackageReleaseNotes>Contains fixed versions of: [InputMap], [Instantiable] and [SceneTree]</PackageReleaseNotes>
+    <PackageReleaseNotes>Contains fixed versions of: [InputMap], [Instantiable] and [SceneTree]. Adds new: [TscnFilePath] and [TresFilePath]</PackageReleaseNotes>
     <Authors>Djentinga (original: Cat-Lips)</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Godot C# SourceGenerator</PackageTags>
