@@ -11,3 +11,4 @@
 *.csproj.old
 
 .idea*
+/.claude/*
